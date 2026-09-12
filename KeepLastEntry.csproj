@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build"
+         xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
+    <ProjectGuid>{6A7B6B9E-6B0E-4A1E-9D63-5F7A0A2F7C31}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>KeepLastEntry</RootNamespace>
+    <AssemblyName>KeepLastEntry</AssemblyName>
+    <!-- Only used for plain msbuild/Visual Studio builds.
+         KeePass's own PLGX compiler ignores this and writes to its own temp folder. -->
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <DebugType Condition="'$(Configuration)' == 'Debug'">full</DebugType>
+    <DebugType Condition="'$(Configuration)' == 'Release'">pdbonly</DebugType>
+    <Optimize Condition="'$(Configuration)' == 'Release'">true</Optimize>
+    <Optimize Condition="'$(Configuration)' == 'Debug'">false</Optimize>
+
+    <!--
+      IMPORTANT: KeePass compiles PLGX plugins with the legacy CodeDom
+      CSharpCodeProvider, not with modern MSBuild/Roslyn. That provider only
+      recognizes "v2.0", "v3.5" or "v4.0" as a CompilerVersion — there is no
+      "v4.8" (or v4.5/4.6/4.7) entry in machine.config's <system.codedom>
+      section. Passing v4.8 here is exactly what produced:
+
+        InvalidOperationException: "Операция является недопустимой из-за
+        текущего состояния объекта" @ PlgxPlugin.Compile(...)
+
+      Always keep this at v4.0 for PLGX builds. The actual assembly still
+      runs fine under the .NET Framework 4.8 that KeePass 2.61.1 targets —
+      this setting only selects which csc.exe frontend compiles it.
+    -->
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <LangVersion>5</LangVersion>
+
+  </PropertyGroup>
+
+  <!--
+    Default so the project also opens/builds normally in Visual Studio /
+    msbuild without extra properties. Override with
+    "msbuild /p:KeePassDir=..." if KeePass is installed elsewhere.
+    KeePass itself IGNORES this HintPath when compiling a PLGX — per the
+    plugin dev docs it substitutes its own running assembly for the
+    "KeePass" reference automatically, regardless of what is written here.
+  -->
+  <PropertyGroup>
+    <KeePassDir Condition="'$(KeePassDir)' == ''">C:\Program Files\KeePass Password Safe 2</KeePassDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="KeePass">
+      <HintPath>$(KeePassDir)\KeePass.exe</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="KeepLastEntry.cs" />
+  </ItemGroup>
+
+  <!-- Needed only for a plain msbuild/Visual Studio build (produces the
+       .dll directly). KeePass's PLGX compiler does not read this import;
+       it uses its own compile logic and ignores anything it doesn't
+       recognize, so this is safe to keep for both build paths. -->
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+</Project>
