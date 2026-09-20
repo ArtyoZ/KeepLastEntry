@@ -1,4 +1,4 @@
-# KeepLastEntry — KeePass 2.61.1
+# KeepLastEntry — KeePass 2.x plugin
 
 KeePass plugin that restores the last selected entry when a database is reopened.
 
