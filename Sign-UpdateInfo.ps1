@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)]
-    [string]$PrivateKeyFile,
+    [Parameter(Mandatory = $false)]
+    [string]$PrivateKeyFile = (Join-Path $PSScriptRoot 'private\KeepLastEntry-update-private.xml'),
 
     [Parameter(Mandatory = $false)]
     [string]$VersionInfoFile = (Join-Path $PSScriptRoot 'KeepLastEntry-version.txt')
